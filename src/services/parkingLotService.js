@@ -1,28 +1,26 @@
-const { getEntryByVehicleId, updateEntryStatus } = require('../services/entryLogService');
-const { updateParkingCapacity } = require('../services/parkingLotService');
+const requests = require('requests');
+require('dotenv').config();
 
-const registerExit = async (req, res) => {
-    const { vehicleId } = req.body;
+const PARKING_LOT_SERVICE_URL = process.env.PARKING_LOT_SERVICE_URL;
 
-    try {
-        const entry = await getEntryByVehicleId(vehicleId);
-        if (!entry) {
-            return res.status(404).json({ message: 'No active entry found for this vehicle' });
-        }
+const updateParkingCapacity = async (parkingLotId) => {
+    const url = `${PARKING_LOT_SERVICE_URL}/${parkingLotId}`;
 
-        if (entry.status === 'Exited') {
-            return res.status(400).json({ message: 'Vehicle has already exited' });
-        }
+    let responseData = '';
 
-        const exitTime = new Date();
-
-        await updateEntryStatus(entry.id);
-        await updateParkingCapacity(entry.parking_lot_id);
-
-        return res.status(200).json({ message: 'Exit registered successfully', exitId: entry.id, exitTime });
-    } catch (error) {
-        return res.status(500).json({ message: 'Error processing exit', error });
-    }
+    requests(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+    })
+        .on('data', (chunk) => {
+            responseData += chunk;
+        })
+        .on('end', () => {
+            console.log("✅ Parking lot capacity increased:", responseData);
+        })
+        .on('error', (error) => {
+            console.error("❌ Error increasing parking lot capacity:", error);
+        });
 };
 
-module.exports = { registerExit };
+module.exports = { updateParkingCapacity };
