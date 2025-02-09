@@ -14,10 +14,14 @@ const registerExit = async (req, res) => {
             return res.status(400).json({ message: 'Vehicle has already exited' });
         }
 
-        const exitTime = new Date();
+        try {
+            await updateParkingCapacity(entry.parking_lot_id);
+        } catch (error) {
+            return res.status(503).json({ message: 'Service Unavailable: Failed to update parking lot capacity. Exit not registered.' });
+        }
 
+        const exitTime = new Date();
         await updateEntryStatus(entry.id);
-        await updateParkingCapacity(entry.parking_lot_id);
 
         return res.status(200).json({ message: 'Exit registered successfully', exitId: entry.id, exitTime });
     } catch (error) {

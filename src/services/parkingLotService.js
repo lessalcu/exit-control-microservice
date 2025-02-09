@@ -8,19 +8,23 @@ const updateParkingCapacity = async (parkingLotId) => {
 
     let responseData = '';
 
-    requests(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' }
-    })
-        .on('data', (chunk) => {
-            responseData += chunk;
+    return new Promise((resolve, reject) => {
+        requests(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' }
         })
-        .on('end', () => {
-            console.log("✅ Parking lot capacity increased:", responseData);
-        })
-        .on('error', (error) => {
-            console.error("❌ Error increasing parking lot capacity:", error);
-        });
+            .on('data', (chunk) => {
+                responseData += chunk;
+            })
+            .on('end', () => {
+                console.log("✅ Parking lot capacity increased:", responseData);
+                resolve();
+            })
+            .on('error', (error) => {
+                console.error("❌ Error increasing parking lot capacity:", error);
+                reject(error);
+            });
+    });
 };
 
 module.exports = { updateParkingCapacity };
